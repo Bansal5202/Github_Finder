@@ -8,18 +8,18 @@ const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 export const GithubProvider = ({ children }) => {
   const initialState = {
     users: [],
+    person: {},
+    repos:[],
   };
 
   const [state, dispatch] = useReducer(GithubReducer, initialState);
 
-
   //search users
 
   const searchUsers = async (text) => {
-
-    const params=new URLSearchParams({
-      q:text,
-    })
+    const params = new URLSearchParams({
+      q: text,
+    });
 
     const response = await fetch(`${GITHUB_URL}/search/users?${params}`, {
       headers: {
@@ -27,7 +27,7 @@ export const GithubProvider = ({ children }) => {
       },
     });
 
-    const {items} = await response.json();
+    const { items } = await response.json();
 
     dispatch({
       type: "GET_USERS",
@@ -35,11 +35,45 @@ export const GithubProvider = ({ children }) => {
     });
   };
 
+  const getUser = async (login) => {
+    
+    const response = await fetch(`${GITHUB_URL}/users/${login}`, {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+      },
+    });
+
+    const data = await response.json();
+
+    dispatch({
+      type: "GET_USER",
+      payload: data,
+    });
+  };
+
+  const getRepo = async (login) => {
+    
+    const response = await fetch(`${GITHUB_URL}/users/${login}/repos`, {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+      },
+    });
+
+    const data = await response.json();
+
+    dispatch({
+      type: "GET_REPO",
+      payload: data,
+    });
+  };
+
+  
+
   //Clear users
 
-  const clearUsers=()=>{
+  const clearUsers = () => {
     dispatch({
-     type: "CLEAR_USERS",
+      type: "CLEAR_USERS",
     });
   };
 
@@ -47,8 +81,12 @@ export const GithubProvider = ({ children }) => {
     <GithubContext.Provider
       value={{
         users: state.users,
+        person: state.person,
+        repos:state.repos,
         searchUsers,
-        clearUsers
+        clearUsers,
+        getUser,
+        getRepo,
       }}
     >
       {children}
